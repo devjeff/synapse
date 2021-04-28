@@ -231,6 +231,26 @@ class SpaceSummaryHandler:
         suggested_only: bool,
         max_children: Optional[int],
     ) -> Tuple[Sequence[JsonDict], Sequence[JsonDict]]:
+        """
+        Generates a room entry and a list of children rooms for the given room.
+
+        Note that if the room is not accessible than empty data is returned.
+
+        Args:
+            requester:
+                The user requesting the summary, if it is a local request. None
+                if this is a federation request.
+            room_id: The room ID to summarize.
+            suggested_only: Whether to include all rooms or limit to "suggested" rooms.
+            max_children:
+                The maximum number of children rooms to include. This is capped
+                to a server-set limit.
+
+        Returns:
+             A tuple of:
+                A sequence with 0 or 1 rooms.
+                A sequence of children rooms.
+        """
         if not await self._is_room_accessible(room_id, requester):
             return (), ()
 
@@ -296,6 +316,24 @@ class SpaceSummaryHandler:
         )
 
     async def _is_room_accessible(self, room_id: str, requester: Optional[str]) -> bool:
+        """
+        Calculate whether the room should be shown in the spaces summary.
+
+        It should be included if:
+
+        * The requester is joined or invited to the room.
+        * The requester can join without an invite (per MSC3083).
+        * The history visibility is set to world readable.
+
+        Args:
+            room_id: The room ID to summarize.
+            requester:
+                The user requesting the summary, if it is a local request. None
+                if this is a federation request.
+
+        Returns:
+             True if the room should be included in the spaces summary.
+        """
         state_ids = await self._store.get_current_state_ids(room_id)
 
         # if we have an authenticated requesting user, first check if they are able to view
