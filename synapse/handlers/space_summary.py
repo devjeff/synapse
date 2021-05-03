@@ -25,7 +25,6 @@ from synapse.api.constants import (
     HistoryVisibility,
     Membership,
 )
-from synapse.api.errors import NotFoundError
 from synapse.events import EventBase
 from synapse.events.utils import format_event_for_client_v2
 from synapse.types import JsonDict
@@ -149,7 +148,7 @@ class SpaceSummaryHandler:
                 for room in fed_rooms:
                     # Pull whether it is world readable from the returned information
                     # since we may not have the state of this room.
-                    include_room = room.get("world_readable") == True
+                    include_room = room.get("world_readable") is True
                     fed_room_id = room.get("room_id")
 
                     if not include_room and fed_room_id:
