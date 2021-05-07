@@ -203,8 +203,6 @@ class PurgeEventsStore(StateGroupWorkerStore, SQLBaseStore):
             "DELETE FROM event_to_state_groups "
             "WHERE event_id IN (SELECT event_id from events_to_purge)"
         )
-        for event_id, _ in event_rows:
-            txn.call_after(self._get_state_group_for_event.invalidate, (event_id,))
 
         # Delete all remote non-state events
         for table in (
@@ -282,6 +280,17 @@ class PurgeEventsStore(StateGroupWorkerStore, SQLBaseStore):
         # finally, drop the temp table. this will commit the txn in sqlite,
         # so make sure to keep this actually last.
         txn.execute("DROP TABLE events_to_purge")
+
+        def invalidate_caches():
+            for event_id, should_delete in event_rows:
+                self._get_state_group_for_event.invalidate((event_id,))
+
+                # FIXME: this is racy - what if have_seen_event gets called between the
+                #    DELETE completing and the invalidation running?
+                if should_delete:
+                    self._have_seen_events.invalidate((event_id,))
+
+        txn.call_after(invalidate_caches)
 
         logger.info("[purge] done")
 
@@ -422,7 +431,17 @@ class PurgeEventsStore(StateGroupWorkerStore, SQLBaseStore):
         #       index on them. In any case we should be clearing out 'stream' tables
         #       periodically anyway (#5888)
 
-        # TODO: we could probably usefully do a bunch of cache invalidation here
+        def invalidate_caches():
+            # TODO: we could probably usefully do a bunch more cache invalidation here
+
+            # FIXME: this is racy - what if have_seen_event gets called between the
+            #    DELETE completing and the invalidation running?
+
+            # we have no way to know which events to clear out of have_seen_event
+            # so just have to drop the whole cache
+            self.have_seen_event.invalidate_all()
+
+        txn.call_after(invalidate_caches)
 
         logger.info("[purge] done")
 
