@@ -174,9 +174,11 @@ class EmailPusher(Pusher):
                 received_at = 0
             notif_ready_at = received_at + DELAY_BEFORE_MAIL_MS
 
-            room_ready_at = self.room_ready_to_notify_at(push_action["room_id"])
+            # room_ready_at = self.room_ready_to_notify_at(push_action["room_id"])
+            # should_notify_at = max(notif_ready_at, room_ready_at)
 
-            should_notify_at = max(notif_ready_at, room_ready_at)
+            # we don't use throttling. Just wait for delay
+            should_notify_at = notif_ready_at
 
             if should_notify_at < self.clock.time_msec():
                 # one of our notifications is ready for sending, so we send
@@ -199,9 +201,11 @@ class EmailPusher(Pusher):
                     max(ea["stream_ordering"] for ea in unprocessed)
                 )
 
+                # we don't use throttling
+
                 # we update the throttle on all the possible unprocessed push actions
-                for ea in unprocessed:
-                    await self.sent_notif_update_throttle(ea["room_id"], ea)
+                #for ea in unprocessed:
+                #    yield self.sent_notif_update_throttle(ea["room_id"], ea)
                 break
             else:
                 if soonest_due_at is None or should_notify_at < soonest_due_at:
