@@ -664,8 +664,8 @@ class RegistrationWorkerStore(CacheInvalidationWorkerStore):
     async def user_add_threepid(self, user_id, medium, address, validated_at, added_at):
         await self.db_pool.simple_upsert(
             "user_threepids",
-            {"medium": medium, "address": address},
-            {"user_id": user_id, "validated_at": validated_at, "added_at": added_at},
+            {"user_id": user_id, "medium": medium, "address": address},
+            {"validated_at": validated_at, "added_at": added_at},
         )
 
     async def user_get_threepids(self, user_id):
