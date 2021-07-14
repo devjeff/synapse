@@ -1039,6 +1039,7 @@ class SyncHandler:
 
         # debug for https://github.com/matrix-org/synapse/issues/4422
         for joined_room in sync_result_builder.joined:
+            logger.info("Sync response, joined room: %s", joined_room.room_id)
             room_id = joined_room.room_id
             if room_id in newly_joined_rooms:
                 issue4422_logger.debug(
@@ -1742,6 +1743,7 @@ class SyncHandler:
         invited = []
 
         for event in room_list:
+            logger.info("_get_all_rooms - room %s, membership: %s", event.room_id, event.membership)
             if event.membership == Membership.JOIN:
                 room_entries.append(
                     RoomSyncResultBuilder(
@@ -1926,6 +1928,7 @@ class SyncHandler:
                 room_sync.unread_count = notifs["unread_count"]
 
                 sync_result_builder.joined.append(room_sync)
+                logger.info("Added room %s to sync result", room_sync.room_id)
 
             if batch.limited and since_token:
                 user_id = sync_result_builder.sync_config.user.to_string()
@@ -1988,6 +1991,9 @@ class SyncHandler:
             if user_id in users_in_room:
                 joined_room_ids.add(room_id)
 
+        logger.info("get_rooms_for_user_at (%s) room ids:")
+        for roomId in joined_room_ids:
+            logger.info("Room: %s", roomId)
         return frozenset(joined_room_ids)
 
 
