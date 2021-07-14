@@ -612,6 +612,9 @@ class RoomMemberWorkerStore(EventsWorkerStore):
                         avatar_url=event.content.get("avatar_url", None),
                     )
 
+        logger.info("_get_joined_users_from_context - users")
+        for userKey in users_in_room:
+            logger.info(userKey)
         return users_in_room
 
     @cached(max_entries=10000)

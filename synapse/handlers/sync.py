@@ -1962,7 +1962,7 @@ class SyncHandler:
             Set of room_ids the user is in at given stream_ordering.
         """
         joined_rooms = await self.store.get_rooms_for_user_with_stream_ordering(user_id)
-
+        
         joined_room_ids = set()
 
         # We need to check that the stream ordering of the join for each room
@@ -1973,6 +1973,8 @@ class SyncHandler:
         # ordering, we need to go and work out if the user was in the room
         # before.
         for room_id, event_pos in joined_rooms:
+            logger.info("get_rooms_for_user_at (%s) joined: %s", user_id, room_id)
+
             if not event_pos.persisted_after(room_key):
                 joined_room_ids.add(room_id)
                 continue
