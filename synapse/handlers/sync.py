@@ -1428,7 +1428,7 @@ class SyncHandler:
         newly_left_rooms = room_changes.newly_left_rooms
 
         async def handle_room_entries(room_entry):
-            logger.debug("Generating room entry for %s", room_entry.room_id)
+            logger.debug("Generating room entry for %s, type: %s", room_entry.room_id, room_entry.rtype)
             res = await self._generate_room_entry(
                 sync_result_builder,
                 ignored_users,
@@ -1743,7 +1743,7 @@ class SyncHandler:
         invited = []
 
         for event in room_list:
-            logger.info("_get_all_rooms - room %s, membership: %s", event.room_id, event.membership)
+            logger.info("_get_all_rooms - room %s, membership: %s, user_id: %s", event.room_id, event.membership, user_id)
             if event.membership == Membership.JOIN:
                 room_entries.append(
                     RoomSyncResultBuilder(
@@ -1906,6 +1906,8 @@ class SyncHandler:
                 room_id, sync_config, batch, state, now_token
             )
 
+        logger.info("room_builder, timeline: %s, state: %s, ephemeral: %s, account_data: %s", batch, state, ephemeral, account_data_events)
+
         if room_builder.rtype == "joined":
             unread_notifications = {}  # type: Dict[str, int]
             room_sync = JoinedSyncResult(
@@ -1929,6 +1931,8 @@ class SyncHandler:
 
                 sync_result_builder.joined.append(room_sync)
                 logger.info("Added room %s to sync result", room_sync.room_id)
+            else: 
+                logger.info("Didn't add room %s to sync result, room_sync: %s, always: %s", room_sync.room_id, room_sync, always_include)
 
             if batch.limited and since_token:
                 user_id = sync_result_builder.sync_config.user.to_string()
@@ -1991,7 +1995,7 @@ class SyncHandler:
             if user_id in users_in_room:
                 joined_room_ids.add(room_id)
 
-        logger.info("get_rooms_for_user_at (%s) room ids:")
+        logger.info("get_rooms_for_user_at (%s) room ids:", user_id)
         for roomId in joined_room_ids:
             logger.info("Room: %s", roomId)
         return frozenset(joined_room_ids)

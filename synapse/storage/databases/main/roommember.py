@@ -318,8 +318,13 @@ class RoomMemberWorkerStore(EventsWorkerStore):
             membership_list,
         )
 
+        for roomId in rooms:
+            logger.info("get_rooms_for_local_user Room: %s", roomId)
+
         # Now we filter out forgotten rooms
         forgotten_rooms = await self.get_forgotten_rooms_for_user(user_id)
+        for roomId in forgotten_rooms:
+            logger.info("Forgotten Room: %s", roomId)
         return [room for room in rooms if room.room_id not in forgotten_rooms]
 
     def _get_rooms_for_local_user_where_membership_is_txn(
