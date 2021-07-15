@@ -1906,8 +1906,6 @@ class SyncHandler:
                 room_id, sync_config, batch, state, now_token
             )
 
-        logger.info("room_builder, timeline: %s, state: %s, ephemeral: %s, account_data: %s", batch, state, ephemeral, account_data_events)
-
         if room_builder.rtype == "joined":
             unread_notifications = {}  # type: Dict[str, int]
             room_sync = JoinedSyncResult(
@@ -1931,8 +1929,8 @@ class SyncHandler:
 
                 sync_result_builder.joined.append(room_sync)
                 logger.info("Added room %s to sync result", room_sync.room_id)
-            else: 
-                logger.info("Didn't add room %s to sync result, room_sync: %s, always: %s", room_sync.room_id, room_sync, always_include)
+            else:
+                logger.info("Didn't add room %s to sync result, room_sync: %s, always: %s", room_sync.room_id, (room_sync == True), always_include)
 
             if batch.limited and since_token:
                 user_id = sync_result_builder.sync_config.user.to_string()
