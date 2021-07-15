@@ -8,8 +8,8 @@ import subprocess
 import sys
 
 import jinja2
-import debugpy
-debugpy.listen(5678)
+#import debugpy
+#debugpy.listen(5678)
 
 
 # Utility functions
