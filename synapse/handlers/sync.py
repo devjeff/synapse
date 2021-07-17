@@ -1427,7 +1427,7 @@ class SyncHandler:
         newly_left_rooms = room_changes.newly_left_rooms
 
         async def handle_room_entries(room_entry):
-            logger.debug("Generating room entry for %s", room_entry.room_id)
+            logger.debug("Generating room entry for %s, type: %s", room_entry.room_id, room_entry.rtype)
             res = await self._generate_room_entry(
                 sync_result_builder,
                 ignored_users,
@@ -1742,6 +1742,7 @@ class SyncHandler:
         invited = []
 
         for event in room_list:
+            logger.debug("_get_all_rooms - room %s, membership: %s, user_id: %s", event.room_id, event.membership, user_id)
             if event.membership == Membership.JOIN:
                 room_entries.append(
                     RoomSyncResultBuilder(
@@ -1926,6 +1927,9 @@ class SyncHandler:
                 room_sync.unread_count = notifs["unread_count"]
 
                 sync_result_builder.joined.append(room_sync)
+                logger.debug("Added room %s to sync result", room_sync.room_id)
+            else:
+                logger.debug("Didn't add room %s to sync result, room_sync: %s, always: %s", room_sync.room_id, (room_sync == True), always_include)
 
             if batch.limited and since_token:
                 user_id = sync_result_builder.sync_config.user.to_string()
