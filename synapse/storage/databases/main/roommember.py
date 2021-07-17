@@ -318,9 +318,15 @@ class RoomMemberWorkerStore(EventsWorkerStore):
             membership_list,
         )
 
+        list_contains_join = 'join' in membership_list
+        for roomId in rooms:
+            logger.debug("get_rooms_for_local_user Room: %s", roomId)
+
         # Now we filter out forgotten rooms
         forgotten_rooms = await self.get_forgotten_rooms_for_user(user_id)
-        return [room for room in rooms if room.room_id not in forgotten_rooms]
+        for roomId in forgotten_rooms:
+            logger.debug("Forgotten Room: %s", roomId)
+        return [room for room in rooms if (room.room_id not in forgotten_rooms or (list_contains_join and room.membership == 'join'))]
 
     def _get_rooms_for_local_user_where_membership_is_txn(
         self, txn, user_id: str, membership_list: List[str]
